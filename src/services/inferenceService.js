@@ -1,18 +1,16 @@
 const tf = require("@tensorflow/tfjs-node");
 const InputError = require("../exceptions/InputError");
 
-async function predictClassification(model, image) {
+async function predictClassification(model, image, next) {
   try {
     const tensor = tf.node
       .decodeJpeg(image)
-      .resizeNearestNeighbor([224, 224])
+      .resizeNearestNeighbor([256, 256])
       .expandDims()
       .toFloat();
 
     const prediction = model.predict(tensor);
-    console.log(prediction);
     const score = await prediction.data();
-    console.log(score);
     const confidenceScore = Math.max(...score) * 100;
 
     const classes = ["Bacterialblight", "Blast", "Brownspot", "Tungro"];
@@ -21,8 +19,8 @@ async function predictClassification(model, image) {
     const label = classes[classResult];
 
     return { confidenceScore, label };
-  } catch (error) {
-    throw new InputError(`Terjadi kesalahan input: ${error.message}`);
+  } catch (err) {
+    next(new InputError(`Terjadi kesalahan input: ${err.message}`));
   }
 }
 
