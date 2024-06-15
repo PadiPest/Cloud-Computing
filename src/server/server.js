@@ -3,16 +3,13 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const loadModel = require("../services/loadModel");
 const routes = require("../server/routes");
 const InputError = require("../exceptions/InputError");
+const UploadError = require("../exceptions/UploadError");
 
 (async () => {
   const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
   const port = process.env.PORT || 8080;
-
-  const model = await loadModel();
-  app.locals.model = model;
 
   app.use(cors());
 
@@ -31,6 +28,11 @@ const InputError = require("../exceptions/InputError");
       res.status(413).send({
         status: "fail",
         message: err.message,
+      });
+    } else if (err instanceof UploadError) {
+      res.status(500).send({
+        status: "fail",
+        message: `Upload Fail: ${err.message}`,
       });
     } else {
       res.status(500).send({

@@ -1,45 +1,51 @@
-const predictClassification = require("../services/inferenceService");
-const crypto = require("crypto");
-const storeData = require("../services/storeData");
 const InputError = require("../exceptions/InputError");
+const uploadImage = require("../services/uploadImage");
+const storeData = require("../services/storeData");
+const getUserData = require("../services/getUserData");
 
-async function postPredictHandler(req, res, next) {
+async function postUploadHandler(req, res, next) {
   try {
     if (!req.file) {
       next(new InputError(`Terjadi kesalahan input: Tidak ada file.`));
     }
     const image = req.file.buffer;
-    const { model } = req.app.locals;
+    const userId = req.body.userId;
+    const name = req.body.name;
 
-    predictionResult = await predictClassification(model, image, next);
-    if (!predictionResult) {
-      return;
-    }
+    const publicUrl = await uploadImage(image, userId, next);
 
-    const { confidenceScore, label } = predictionResult;
-    const id = crypto.randomUUID();
-    const createdAt = new Date().toISOString();
-
-    const data = {
-      id: id,
-      result: label,
-      confidenceScore: confidenceScore,
-      createdAt: createdAt,
-    };
-
-    await storeData(id, data);
+    await storeData(userId, name, publicUrl);
 
     res.status(201).send({
       status: "success",
-      message:
-        confidenceScore > 99
-          ? "Model is predicted successfully."
-          : "Model is predicted successfully but under threshold. Please use the correct picture",
-      data,
+      message: "User profile saved.",
     });
   } catch (err) {
     next(err);
   }
 }
 
-module.exports = postPredictHandler;
+async function postProfileHandler(req, res, next) {
+  try {
+    const userId = req.params.userId;
+
+    const data = await getUserData(userId);
+
+    if (data === undefined) {
+      res.status(404).send({
+        status: "fail",
+        message: "User not found.",
+      });
+    } else {
+      res.status(200).send({
+        status: "success",
+        message: "User data found.",
+        data,
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { postUploadHandler, postProfileHandler };
