@@ -22,7 +22,7 @@ const UploadError = require("../exceptions/UploadError");
     if (err instanceof InputError) {
       res.status(err.statusCode).send({
         status: "fail",
-        message: `${err.message}. Silakan gunakan foto lain.`,
+        message: `${err.message} Mohon masukkan data dengan benar.`,
       });
     } else if (err.message === "File too large") {
       res.status(413).send({
@@ -40,6 +40,13 @@ const UploadError = require("../exceptions/UploadError");
         message: `Error: ${err.message}`,
       });
     }
+  });
+
+  app.use((req, res, next) => {
+    res.status(404).send({
+      status: "fail",
+      message: "The route you requested not exist.",
+    });
   });
 
   app.listen(port, () => {
