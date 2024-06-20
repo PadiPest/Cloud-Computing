@@ -17,6 +17,20 @@ async function uploadImage(image, userId, next) {
   const storage = new Storage();
   const bucket = storage.bucket(process.env.BUCKET_NAME);
 
+  const prefix = `users/${userId}`;
+  const [files] = await bucket.getFiles({ prefix });
+
+  const firstFilter = files.filter((file) =>
+    file.name.startsWith(`users/${userId}/profile-picture`)
+  );
+  const secondFilter = firstFilter.filter((file) => file.name.endsWith(".jpg"));
+
+  if (secondFilter.length > 0) {
+    for (const file of secondFilter) {
+      await file.delete();
+    }
+  }
+
   const date = formatDate();
   const fileName = `profile-picture-${date}.jpg`;
   const file = bucket.file(`users/${userId}/${fileName}`);
