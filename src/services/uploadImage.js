@@ -7,10 +7,18 @@ function formatDate() {
   let month = (fullDate.getMonth() + 1).toString();
   let date = fullDate.getDate().toString();
 
+  let hour = fullDate.getHours().toString();
+  let minute = fullDate.getMinutes().toString();
+  let second = fullDate.getSeconds().toString();
+
   month = month.length < 2 ? "0" + month : month;
   date = date.length < 2 ? "0" + date : date;
 
-  return year + month + date;
+  hour = hour.length < 2 ? "0" + hour : hour;
+  minute = minute.length < 2 ? "0" + minute : minute;
+  second = second.length < 2 ? "0" + second : second;
+
+  return year + month + date + "-" + hour + minute + second;
 }
 
 async function uploadImage(image, userId, next) {
